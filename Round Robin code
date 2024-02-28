@@ -1,0 +1,120 @@
+#include <stdio.h>
+#include <limits.h>
+#include <stdbool.h>
+
+struct Process {
+    int AT, BT, ST[20], WT, FT, TAT, pos;
+};
+
+int quant;
+
+int main() {
+    int n, i, j;
+
+    // Taking Input
+    printf("Enter the no. of processes: ");
+    scanf("%d", &n);
+    struct Process p[n];
+
+    printf("Enter the quantum: ");
+    scanf("%d", &quant);
+
+    printf("Enter the process numbers: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &(p[i].pos));
+
+    printf("Enter the Arrival time of processes: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &(p[i].AT));
+
+    printf("Enter the Burst time of processes: ");
+    for (i = 0; i < n; i++)
+        scanf("%d", &(p[i].BT));
+
+    // Declaring variables
+    int c = n, s[n][20];
+    float time = 0, mini = INT_MAX;
+    int tot_wt = 0, tot_tat = 0;
+    bool flag = false;
+
+    // Initializing burst and arrival time arrays
+    int index = -1;
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < 20; j++) {
+            p[i].ST[j] = -1;
+            s[i][j] = -1;
+        }
+    }
+
+    while (c != 0) {
+        mini = INT_MAX;
+        flag = false;
+
+        for (i = 0; i < n; i++) {
+            float p = time + 0.1;
+            if (p[i].AT <= p && mini > p[i].AT && p[i].BT > 0) {
+                index = i;
+                mini = p[i].AT;
+                flag = true;
+            }
+        }
+        // if at =1 then loop gets out hence set flag to false
+        if (!flag) {
+            time++;
+            continue;
+        }
+
+        // calculating start time
+        j = 0;
+        while (s[index][j] != -1) {
+            j++;
+        }
+
+        if (s[index][j] == -1) {
+            s[index][j] = time;
+            p[index].ST[j] = time;
+        }
+
+        if (p[index].BT <= quant) {
+            time += p[index].BT;
+            p[index].BT = 0;
+        } else {
+            time += quant;
+            p[index].BT -= quant;
+        }
+
+        if (p[index].BT > 0) {
+            p[index].AT = time + 0.1;
+        }
+
+        // calculating arrival, burst, final times
+        if (p[index].BT == 0) {
+            c--;
+            p[index].FT = time;
+            p[index].WT = p[index].FT - p[index].AT - p[index].BT;
+            tot_wt += p[index].WT;
+            p[index].TAT = p[index].BT + p[index].WT;
+            tot_tat += p[index].TAT;
+        }
+    } // end of while loop
+
+    // Printing output
+    printf("\nP\tAT\tBT\tFT\tWT\tTAT\n");
+
+    for (i = 0; i < n; i++) {
+        printf("%d\t%d\t%d", p[i].pos, p[i].AT, p[i].BT);
+
+        printf("\t%d\t%d\t%d\n", p[i].FT, p[i].WT, p[i].TAT);
+    }
+
+    // Calculating average wait time and turnaround time
+    double avg_wt, avg_tat;
+    avg_wt = (double) tot_wt / n;
+    avg_tat = (double) tot_tat / n;
+
+    // Printing average wait time and turnaround time
+    printf("\nThe average wait time is: %lf\n", avg_wt);
+    printf("The average TurnAround time is: %lf\n", avg_tat);
+
+    return 0;
+}
